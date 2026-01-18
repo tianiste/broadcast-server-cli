@@ -52,10 +52,17 @@ func (s *Server) Run() {
 
 		case client := <-s.Leave:
 			s.Mu.Lock()
-			s.Forward <- []byte(fmt.Sprintf("%s left the chat", client.Username))
+			delete(s.Clients, client)
 			s.Mu.Unlock()
+			s.Forward <- []byte(fmt.Sprintf("%s left the chat", client.Username))
 
 		case msg := <-s.Forward:
+			s.Mu.Lock()
+			clients := make([]*Client, 0, len(s.Clients))
+			for c := range s.Clients {
+				clients = append(clients, c)
+			}
+			s.Mu.Unlock()
 			for client := range s.Clients {
 				if err := client.Socket.WriteMessage(websocket.TextMessage, msg); err != nil {
 					fmt.Printf("error writing message: %v\n", err)
@@ -79,16 +86,10 @@ func (s *Server) HandleConnections(w http.ResponseWriter, r *http.Request) {
 		Username: r.PathValue("username"),
 	}
 
-	s.Mu.Lock()
 	s.Forward <- []byte(fmt.Sprintf("%s joined the chat", client.Username))
-	s.Mu.Unlock()
 	s.Join <- client
 
 	defer func() {
-		s.Mu.Lock()
-		delete(s.Clients, client)
-		s.Mu.Unlock()
-		close(client.Recieve)
 		client.Socket.Close()
 		s.Leave <- client
 	}()

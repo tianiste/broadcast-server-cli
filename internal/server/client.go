@@ -22,7 +22,6 @@ func Read(conn *websocket.Conn) {
 		_, msg, err := conn.ReadMessage()
 		if err != nil {
 			log.Println("unable to read message", err)
-			os.Exit(0)
 			return
 		}
 		fmt.Println(string(msg))
@@ -42,7 +41,6 @@ func Write(conn *websocket.Conn) {
 			}
 		} else if err := scanner.Err(); err != nil {
 			log.Println("error reading input", err)
-			os.Exit(0)
 			return
 		}
 	}
