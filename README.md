@@ -60,3 +60,5 @@ Typing a message in one terminal will broadcast it to all connected clients.
 - Message history
 - Authentication
 - Structured JSON messages
+
+[Project Idea](https://roadmap.sh/projects/broadcast-server)
